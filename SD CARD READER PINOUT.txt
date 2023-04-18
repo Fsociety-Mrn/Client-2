@@ -1,0 +1,40 @@
+tutorial
+https://maker.pro/arduino/projects/arduino-audio-player
+
+.wav converter and settings
+
+https://www.online-convert.com
+
+**** SETTINGS ****
+8 BIT 	 - Change Bit Resolution
+16000Hz  - Change sampling rate
+MON0 	 - Change audio channels
+U8	 - Change PCM format 
+
+ ____________________________________________
+| SD CAR READER | ARDUINO UNO | ARDUINO MEGA |
+|============================================|
+|               |             |              |
+| CS ---------- | 10 or Any - | 53 or Any -- |
+| SCK --------- | 13 -------- | 52 --------- |
+| MOSI -------- | 11 -------- | 51 --------- |
+| MOSO -------- | 12 -------- | 50 --------- |
+| VCC --------- | 5V -------- | 5v --------- |
+| GND --------- | GND ------- | GND -------- |
+|____________________________________________|
+
+
+ _____________________
+| Amplifier | Speaker |
+|=====================|
+| +L ------ |positive |
+| -L ------ |Negative |
+|_____________________|
+
+ ______________________
+| Amplifier | Arduino  |
+|======================|
+| + Power---| 5v ------|  
+| - Power---| GND -----|
+| L (input)-| 10 or any|
+|______________________|
