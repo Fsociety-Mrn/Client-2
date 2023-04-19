@@ -20,21 +20,12 @@ audio.volume(0);           1(up) or 0(down) to control volume
 audio.setVolume(0);        0 to 7. Set volume level
 audio.loop(1);             0 or 1. Can be changed during playback for full control of looping. 
 */ 
-#include <pcmConfig.h>
-#include <pcmRF.h>
-#include <TMRpcm.h>
 
 
-
-
-#include <SD.h>
-
-#include <SPI.h>
-
-//#include "SD.h"
+#include "SD.h"
 #define SD_ChipSelectPin 10
-//#include "TMRpcm.h"
-//#include "SPI.h"
+#include "TMRpcm.h"
+#include "SPI.h"
 
 TMRpcm tmrpcm;
 
@@ -47,33 +38,28 @@ void setup(){
 
 void loop(){
 
-  checkSDCard();
-  tmrpcm.setVolume(5);
-
-
-//  night mode
-  tmrpcm.play("night.wav");
-  while (tmrpcm.isPlaying()); 
-  
-  tmrpcm.play("day.wav");
-  while (tmrpcm.isPlaying()); 
-
-  tmrpcm.play("sos.wav");
-  while (tmrpcm.isPlaying()); 
-
-  tmrpcm.play("stand.wav");
-  while (tmrpcm.isPlaying()); 
-
-  tmrpcm.play("time.wav");
-  while (tmrpcm.isPlaying()); 
-
-}
-
-bool checkSDCard(){
-  while (!SD.begin(SD_ChipSelectPin)) {
+    if (!SD.begin(SD_ChipSelectPin)) {
     Serial.println("SD fail");
     return;
   } 
   Serial.println("working");
-  return true;
+  tmrpcm.setVolume(5);
+
+
+//  night mode
+  tmrpcm.play('night.wav');
+  while (tmrpcm.isPlaying()); 
+  
+  tmrpcm.play('day.wav');
+  while (tmrpcm.isPlaying()); 
+
+  tmrpcm.play('sos.wav');
+  while (tmrpcm.isPlaying()); 
+
+  tmrpcm.play('stand.wav');
+  while (tmrpcm.isPlaying()); 
+
+  tmrpcm.play('time.wav');
+  while (tmrpcm.isPlaying()); 
+
 }
