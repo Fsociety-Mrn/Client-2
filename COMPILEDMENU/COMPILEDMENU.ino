@@ -2,6 +2,7 @@
 #include <SoftwareSerial.h>
 #include <Wire.h>              // include the Wire library for I2C communication
 #include "RTClib.h"      // include the RTClib library for the DS3231 RTC module
+#include "DFRobotDFPlayerMini.h"
 
 U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_NONE | U8G_I2C_OPT_DEV_0);
 int button1 = 9; // button 1 is connected to digital pin SET 42
@@ -43,6 +44,14 @@ String _buffer;
 String number = "+639473117641"; //-> change with your number
 RTC_DS3231 rtc;    
 
+
+
+// ------------------------------------- SD CARD ------------------------------------- //
+#define RX 10
+#define TX 11
+SoftwareSerial mySoftwareSerial(RX, TX); // RX, TX
+DFRobotDFPlayerMini myDFPlayer;
+
 void setup() {
   pinMode(button1, INPUT_PULLUP);
   pinMode(button2, INPUT_PULLUP);
@@ -55,6 +64,11 @@ void setup() {
   // RTC
   Wire.begin();          // initialize I2C communication
   rtc.begin();
+
+  // serial com for DFplayer mp3 mini
+  Serial.begin(115200);
+  mySoftwareSerial.begin(9600);
+
   // Wait for SIM800L module to respond
   if (!checkSIM800L()) {
     Serial.println("SIM800L not responding.");
@@ -62,6 +76,17 @@ void setup() {
   }
   Serial.println("TYPE S TO SEND A MESSAGE OR D TO SEND AN ALERT");  \
 
+  // check if SD card is working
+  while (!myDFPlayer.begin(mySoftwareSerial)) {  //Use softwareSerial to communicate with mp3.
+
+    u8g.drawStr((128 - u8g.getStrWidth("SD card fail")) / 2, 30, "SD card fail");
+    Serial.println("SD card fail");
+    u8g.nextPage();
+    
+  }
+ Serial.println("Working SD Card");
+  myDFPlayer.volume(30);
+  myDFPlayer.EQ(DFPLAYER_EQ_NORMAL);
  
 //--------------------------------------SONAR----------------------------------//
   pinMode(trigPinR, OUTPUT); // Sets the trigPin as an Output
@@ -92,6 +117,9 @@ void loop() {
     u8g.setFont(u8g_font_6x10);
     if (digitalRead(button1) == LOW) {
       buttonPressed = 1;
+
+      myDFPlayer.play(1); //Daymode is selected
+
       while(buttonPressed == 1){
         u8g.drawStr((128 - u8g.getStrWidth("Daymode Selected!")) / 2, 30, "Daymode Selected!");
         Serial.println("Daymode Selected!");
@@ -104,6 +132,9 @@ void loop() {
       }
     } else if (digitalRead(button2) == LOW) {
       buttonPressed = 2;
+
+      myDFPlayer.play(2);  //Nightmode is selected
+
       while(buttonPressed == 2){
       u8g.drawStr((128 - u8g.getStrWidth("Nightmode Selected!")) / 2, 30, "Nightmode Selected!");
       Serial.println("Nightmode Selected!");
@@ -116,6 +147,9 @@ void loop() {
       }
     } else if (digitalRead(button3) == LOW) {
       buttonPressed = 3;
+
+      myDFPlayer.play(3);  //Rainmode is selected
+
       while(buttonPressed == 3){
       u8g.drawStr((128 - u8g.getStrWidth("Rainmode Selected!")) / 2, 30, "Rainmode Selected!");
       Serial.println("Rainmode Selected!");
@@ -128,6 +162,9 @@ void loop() {
       }
     } else if (digitalRead(button4) == LOW) {
       buttonPressed = 4;
+
+      myDFPlayer.play(4);  //SOS is selected
+
       while(buttonPressed == 4){
       u8g.drawStr((128 - u8g.getStrWidth("SOSmode Selected!")) / 2, 30, "SOSmode Selected!");
       Serial.println("SOSmode Selected!");
@@ -141,6 +178,9 @@ void loop() {
     } 
     else if (digitalRead(button1) == LOW) && (digitalRead(button2) == LOW) {
       buttonPressed = 6;
+
+      myDFPlayer.play(6);  //Timecheck is detected
+
       u8g.drawStr((128 - u8g.getStrWidth("Time Check Mode!")) / 2, 30, "Time Check Mode!");
       Serial.println("Time Check Mode!");
       u8g.nextPage();
@@ -151,6 +191,9 @@ void loop() {
     else {
       u8g.drawStr((128 - u8g.getStrWidth("NO MODE SELECTED")) / 2, 30, "NO MODE SELECTED");
       Serial.println("NO MODE SELECTED!");
+
+      myDFPlayer.play(9);  //No mode is seleted
+
     }
   } while (u8g.nextPage());
 }
@@ -272,6 +315,9 @@ void MainUltraSonic(){
   LeftUltrasonic();
 
  if(distanceR <= 50 || distanceM <= 50 || distanceL <= 50){
+
+    myDFPlayer.play(5);  //Obstacle is detected
+
     digitalWrite(LvibPin, HIGH);
     digitalWrite(MvibPin, HIGH);
     digitalWrite(RvibPin, HIGH);    
@@ -289,9 +335,12 @@ void MainUltraSonic(){
 void LDRfunction(){
    if( digitalRead( ldr_pin ) == 1){
       Serial.println("Dark Place"); // Voice wull notif that it is on the dark area
+      myDFPlayer.play(8);  //Darkplace place
+
    }
    else{
        Serial.println("Light Place"); // Voice wull notif that it is on the ligher area
+       myDFPlayer.play(7);  //Light place
    }
 }
 
