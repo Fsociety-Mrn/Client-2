@@ -47,7 +47,7 @@
 ## Pa lagyan nalang boss AJ ng check (/) para organize din:
 -------------------------------------------------------
 
-Main Menu Features:
+### Main Menu Features:
 - Gumagana mga modes pag sinelect 	( / )
 
 - May sound kapag Sinelect yung mode for ex. "Rain mode Selected" ( / )
