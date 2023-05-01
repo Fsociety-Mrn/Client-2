@@ -2,7 +2,7 @@
 <h3 align="center"> Pinout at Features </h3>
 
 
-# PINOUT
+<h2 align="center"> ------------- PINOUT ng mga Hardware------------- </h2>
 
 ### Vibration ata to
 - VibRight - Digital pin 13
@@ -41,7 +41,8 @@
 - LDR Sensor
 
 
-# Features
+<h2 align="center"> ------------- Features ng Smart Stick ------------- </h2>
+
 
 ## Pa lagyan nalang boss AJ ng check (/) para organize din:
 -------------------------------------------------------
