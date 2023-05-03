@@ -58,20 +58,19 @@ void setup() {
   pinMode(button3, INPUT_PULLUP);
   pinMode(button4, INPUT_PULLUP);
   pinMode(button5, INPUT_PULLUP);
-  u8g.setRot180(); // Rotate the display 180 degrees
 
   
   Serial.begin(115200);
 
-  sim800l.begin(115200);
-  // RTC
-  Wire.begin();          // initialize I2C communication
-  rtc.begin();  
-  // Wait for SIM800L module to respond
-  while (!checkSIM800L()) {
-    Serial.println("SIM800L not responding.");
-}
-Serial.println("TYPE S TO SEND A MESSAGE OR D TO SEND AN ALERT");
+//   sim800l.begin(115200);
+//   // RTC
+//   Wire.begin();          // initialize I2C communication
+//   rtc.begin();  
+//   // Wait for SIM800L module to respond
+//   while (!checkSIM800L()) {
+//     Serial.println("SIM800L not responding.");
+// }
+// Serial.println("TYPE S TO SEND A MESSAGE OR D TO SEND AN ALERT");
 
 
   
@@ -239,38 +238,35 @@ void daymode() {
   Serial.println("Daymode Selected!");
   MainUltraSonic();
   LEDHazzardfunctionOFF();
-
-
-  if (!checkOnce) {
-    checkOnce = LDRfunction();
-  }
+  ldrnight();
   
 }
 void nightmode() {
 Serial.println("Nightmode Selected!");
 MainUltraSonic();
-  LEDHazzardfunctionOFF();
+LEDHazzardfunctionOFF();
+ldrday();
   
-  while (smsCount < 10) { // loop until 3 SMS messages have been sent
-    sms("09951594526", "ALERT: Night Mode was triggered! Location: vip.sinotrack.com"); //pa change nalang number
-    delay(1000); // wait for 1 second between SMS messages
-    smsCount++; // increment counter variable
-  }
+//   while (smsCount < 10) { // loop until 3 SMS messages have been sent
+//     sms("09951594526", "ALERT: Night Mode was triggered! Location: vip.sinotrack.com"); //pa change nalang number
+//     delay(1000); // wait for 1 second between SMS messages
+//     smsCount++; // increment counter variable
+//   }
 }
 void rainmode() {
 Serial.println("Rainmode Selected!");
 LEDHazzardfunctionON();
   
-  while (smsCount < 3) { // loop until 3 SMS messages have been sent
-    sms("09951594526", "ALERT: Rain Mode was triggered! Location: vip.sinotrack.com"); //pa change nalang number
-    delay(1000); // wait for 1 second between SMS messages
-    smsCount++; // increment counter variable
-  }
+//   while (smsCount < 3) { // loop until 3 SMS messages have been sent
+//     sms("09951594526", "ALERT: Rain Mode was triggered! Location: vip.sinotrack.com"); //pa change nalang number
+//     delay(1000); // wait for 1 second between SMS messages
+//     smsCount++; // increment counter variable
+//   }
 }
 void SOSmode() {
 Serial.println("SOSmode Selected!");
 LEDHazzardfunctionON();
-  sms("09951594526", "ALERT: SOS Mode was triggered! Location: vip.sinotrack.com"); //pa change nalang number
+//   sms("09951594526", "ALERT: SOS Mode was triggered! Location: vip.sinotrack.com"); //pa change nalang number
 
   myDFPlayer.play(10);  //No mode is seleted
   delay(3000);  
@@ -278,7 +274,7 @@ LEDHazzardfunctionON();
 }
 void timecheckmode() {
   Serial.println("TimeCheckmode Selected!");
-  rtc.adjust(DateTime(2023, 4, 19, 18, 30, 0));
+  rtc.adjust(DateTime(2023, 4, 19, 16, 30, 0));
   DateTime now = rtc.now();
   Serial.println("You Selected Time Check!");
   
@@ -444,15 +440,18 @@ void MainUltraSonic(){
   MidUltrasonic();
   LeftUltrasonic();
 
- if(distanceR <= 50 || distanceM <= 50 || distanceL <= 50){
+ if(distanceR <= 60 || distanceM <= 60 || distanceL <= 60){
 
 
     digitalWrite(LvibPin, HIGH);
     digitalWrite(MvibPin, HIGH);
     digitalWrite(RvibPin, HIGH);    
 
+   if (distanceM <= 40){
     myDFPlayer.play(5);  //Obstacle is detected
     delay(6000);
+   }
+    
 
     }
   else{
@@ -477,6 +476,22 @@ bool LDRfunction(){
    }
 
    return true;
+}
+
+void ldrnight(){
+  if( digitalRead( ldr_pin ) == HIGH){
+      Serial.println("Dark Place"); // Voice wull notif that it is on the dark area
+      myDFPlayer.play(8);  //Darkplace place
+      delay(6000); 
+   }
+}
+
+void ldrday(){
+  if( digitalRead( ldr_pin ) == LOW){
+      Serial.println("LIGHT Place"); // Voice wull notif that it is on the dark area
+      myDFPlayer.play(7);  //LIGHT place
+      delay(6000); 
+   }
 }
 
 void LEDHazzardfunctionOFF(){
@@ -512,41 +527,41 @@ for(int i=30; i>21; i--){
   digitalWrite(i-1, LOW);
 }
 }
-// Function to send an SMS message
-void sms(String phone_number, String message) {
-  // Send AT command to set the SMS mode to text
-  sim800l.println("AT+CMGF=1");
+// // Function to send an SMS message
+// void sms(String phone_number, String message) {
+//   // Send AT command to set the SMS mode to text
+//   sim800l.println("AT+CMGF=1");
 
-  delay(1000); // Wait for SIM800L module to respond
+//   delay(1000); // Wait for SIM800L module to respond
 
-  // Send AT command to set the phone number to send the message to
-  sim800l.print("AT+CMGS=\"");
-  sim800l.print(phone_number);
-  sim800l.println("\"");
+//   // Send AT command to set the phone number to send the message to
+//   sim800l.print("AT+CMGS=\"");
+//   sim800l.print(phone_number);
+//   sim800l.println("\"");
 
-  delay(150); // Wait for SIM800L module to respond
+//   delay(150); // Wait for SIM800L module to respond
 
-  // Send the message
-  sim800l.print(message);
+//   // Send the message
+//   sim800l.print(message);
 
-  delay(200); // Wait for SIM800L module to respond
+//   delay(200); // Wait for SIM800L module to respond
 
-  // Send Ctrl+Z to end the message
-  sim800l.write(26);
+//   // Send Ctrl+Z to end the message
+//   sim800l.write(26);
 
-  delay(500); // Wait for SIM800L module to respond
-  Serial.println("SMS SENT!");
-}
+//   delay(500); // Wait for SIM800L module to respond
+//   Serial.println("SMS SENT!");
+// }
 
-// Function to check if SIM800L module is responding
-bool checkSIM800L() {
-  sim800l.println("AT");
-  delay(1000);
-  if (sim800l.available()) {
-    String response = sim800l.readString();
-    if (response.indexOf("OK") != -1) {
-      return true;
-    }
-  }
-  return false;
-}
+// // Function to check if SIM800L module is responding
+// bool checkSIM800L() {
+//   sim800l.println("AT");
+//   delay(1000);
+//   if (sim800l.available()) {
+//     String response = sim800l.readString();
+//     if (response.indexOf("OK") != -1) {
+//       return true;
+//     }
+//   }
+//   return false;
+// }
