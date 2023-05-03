@@ -440,20 +440,20 @@ void MainUltraSonic(){
   MidUltrasonic();
   LeftUltrasonic();
 
- if(distanceR <= 60 || distanceM <= 60 || distanceL <= 60){
+ if(distanceR <= 60 || distanceL <= 60){
 
 
     digitalWrite(LvibPin, HIGH);
     digitalWrite(MvibPin, HIGH);
     digitalWrite(RvibPin, HIGH);    
 
-   if (distanceM <= 40){
+   if (distanceM <= 30){
     myDFPlayer.play(5);  //Obstacle is detected
     delay(6000);
    }
     
 
-    }
+  }
   else{
     digitalWrite(LvibPin, LOW);
     digitalWrite(MvibPin, LOW);
