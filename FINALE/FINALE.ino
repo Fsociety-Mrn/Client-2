@@ -478,14 +478,14 @@ void MainUltraSonic(){
   MidUltrasonic();
   LeftUltrasonic();
 
- if(distanceR <= 50 || distanceM <= 50 || distanceL <= 50){
+ if(distanceR <= 50 || distanceL <= 50){
 
 
     digitalWrite(LvibPin, HIGH);
     digitalWrite(MvibPin, HIGH);
     digitalWrite(RvibPin, HIGH);    
 
-    if (distanceM <= 70){
+    if (distanceM <= 30){
       myDFPlayer.play(5);  //Obstacle is detected
       delay(6000); 
     }
@@ -516,16 +516,16 @@ bool LDRfunction(){
 
 void ldrnight(){
     if( digitalRead( ldr_pin ) == HIGH){
-      Serial.println("Dark Place"); // Voice wull notif that it is on the dark area
-      myDFPlayer.play(8);  //Dark Place
+      Serial.println("LIGHT PLACE"); // Voice wull notif that it is on the dark area
+      myDFPlayer.play(7);  //Dark Place
       delay(6000); 
    }
 }
 
 void ldrday(){
     if( digitalRead( ldr_pin ) == LOW){
-      Serial.println("Light Place"); // Voice wull notif that it is on the dark area
-      myDFPlayer.play(7);  //Dark Place
+      Serial.println("DARK Place"); // Voice wull notif that it is on the dark area
+      myDFPlayer.play(8);  //Dark Place
       delay(6000); 
    }
 }
@@ -563,29 +563,29 @@ for(int i=30; i>21; i--){
   digitalWrite(i-1, LOW);
 }
 }
-// Function to send an SMS message
-void sendSMS(String phone_number, String message) {
-  gsmSerial.println("AT+CMGF=1"); // set message format to text mode
-  delay(1000);
-  gsmSerial.print("AT+CMGS=\""); // start message sending
-  gsmSerial.print(phone_number);
-  gsmSerial.println("\"");
-  delay(1000);
-  gsmSerial.print(message);
-  delay(1000);
-  gsmSerial.write(26); // end message sending by sending Ctrl+Z
-  delay(1000);
-}
+// // Function to send an SMS message
+// void sendSMS(String phone_number, String message) {
+//   gsmSerial.println("AT+CMGF=1"); // set message format to text mode
+//   delay(1000);
+//   gsmSerial.print("AT+CMGS=\""); // start message sending
+//   gsmSerial.print(phone_number);
+//   gsmSerial.println("\"");
+//   delay(1000);
+//   gsmSerial.print(message);
+//   delay(1000);
+//   gsmSerial.write(26); // end message sending by sending Ctrl+Z
+//   delay(1000);
+// }
 
-// Function to check if SIM800L module is responding
-bool gsmCheck() {
-  gsmSerial.println("AT");
-  delay(1000);
-  if (gsmSerial.available()) {
-    String response = gsmSerial.readString();
-    if (response.indexOf("OK") != -1) {
-      return true;
-    }
-  }
-  return false;
-}
+// // Function to check if SIM800L module is responding
+// bool gsmCheck() {
+//   gsmSerial.println("AT");
+//   delay(1000);
+//   if (gsmSerial.available()) {
+//     String response = gsmSerial.readString();
+//     if (response.indexOf("OK") != -1) {
+//       return true;
+//     }
+//   }
+//   return false;
+// }
