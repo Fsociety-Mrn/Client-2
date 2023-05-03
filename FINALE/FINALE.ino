@@ -267,10 +267,8 @@ void daymode() {
 void nightmode() {
 Serial.println("Nightmode Selected!");
 MainUltraSonic();
-  LEDHazzardfunctionOFF();
+  LEDHazzardfunctionON();
   ldrday();
-
-  sendsmsnight();
 }
 void rainmode() {
 Serial.println("Rainmode Selected!");
@@ -299,7 +297,7 @@ LEDHazzardfunctionON();
 }
 void timecheckmode() {
   Serial.println("TimeCheckmode Selected!");
-  rtc.adjust(DateTime(2023, 4, 19, 18, 30, 0));
+  //rtc.adjust(DateTime(2023, 4, 19, 21, 30, 0)); // CHANGE IN TIMECHECK
   DateTime now = rtc.now();
   Serial.println("You Selected Time Check!");
   
@@ -619,7 +617,7 @@ void sendsmsnight(){
   delay(1000);
 
   Serial.println("Test message sent.");
-  delay(5000);  
+  delay(1000);  
 }
 void sendsmsrain(){
 // Send a test message to a phone number
@@ -633,7 +631,7 @@ void sendsmsrain(){
   delay(1000);
 
   Serial.println("Test message sent.");
-  delay(5000);  
+  delay(1000);  
 }
 void sendsmssos(){
 // Send a test message to a phone number
@@ -647,5 +645,5 @@ void sendsmssos(){
   delay(1000);
 
   Serial.println("Test message sent.");
-  delay(5000);    
+  delay(1000);    
 }
