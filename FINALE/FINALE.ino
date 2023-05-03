@@ -3,6 +3,7 @@
 #include <Wire.h>              // include the Wire library for I2C communication
 #include "RTClib.h"      // include the RTClib library for the DS3231 RTC module
 #include "DFRobotDFPlayerMini.h"
+#include <String.h>
 
 U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_NONE | U8G_I2C_OPT_DEV_0);
 int button1 = 42; // button 1 is connected to digital pin SET 42
@@ -38,7 +39,7 @@ int l = 0;
 int r = 0;
 
 //SIM SETUP
-SoftwareSerial sim800l(5, 6); // RX, TX
+SoftwareSerial gsmSerial(18, 19); // RX, TX pins
 
 RTC_DS3231 rtc;   
 
@@ -58,19 +59,22 @@ void setup() {
   pinMode(button3, INPUT_PULLUP);
   pinMode(button4, INPUT_PULLUP);
   pinMode(button5, INPUT_PULLUP);
+  // u8g.setRot180(); // Rotate the display 180 degrees
 
   
   Serial.begin(115200);
 
-//   sim800l.begin(115200);
-//   // RTC
-//   Wire.begin();          // initialize I2C communication
-//   rtc.begin();  
-//   // Wait for SIM800L module to respond
-//   while (!checkSIM800L()) {
-//     Serial.println("SIM800L not responding.");
-// }
-// Serial.println("TYPE S TO SEND A MESSAGE OR D TO SEND AN ALERT");
+  // RTC
+  Wire.begin();          // initialize I2C communication
+  rtc.begin();  
+  // Wait for SIM800L module to respond
+  gsmSerial.begin(115200);
+  delay(1000);
+  // while (!gsmCheck()) {
+  //   Serial.println("GSM module is not responding. Retrying...");
+  //   delay(1000);
+  // }
+  // Serial.println("GSM module is responding");
 
 
   
@@ -126,17 +130,21 @@ if (digitalRead(button1) == LOW) {
   do {
     u8g.drawStr((128 - u8g.getStrWidth("Daymode Selected!")) / 2, 30, "Daymode Selected!");
   } while ( u8g.nextPage() );
+  
   checkOnce = false;
+  
   while(buttonPressed == 1){
     Serial.println("Daymode Selected!");
     daymode();
+    
     if (digitalRead(button5) == LOW){
 
       myDFPlayer.play(9);  //No mode is seleted
       delay(3000);
 
       goto s;
-    } 
+    }
+     
     while (digitalRead(button1) == LOW){
       Serial.println("TimeCheck!");
       timecheckmode();
@@ -148,7 +156,8 @@ if (digitalRead(button1) == LOW) {
   buttonPressed = 2;
   
 myDFPlayer.play(2);  //Nightmode is selected  
-  
+  delay(3000);
+    
   u8g.firstPage();
   do {
     u8g.drawStr((128 - u8g.getStrWidth("Nightmode Selected!")) / 2, 30, "Nightmode Selected!");
@@ -191,6 +200,7 @@ myDFPlayer.play(2);  //Nightmode is selected
       
       goto s;
     }    
+    
     while (digitalRead(button3) == LOW){
       Serial.println("TimeCheck!");
       timecheckmode();
@@ -230,6 +240,9 @@ myDFPlayer.play(4);  //SOS is selected
        
       u8g.drawStr((128 - u8g.getStrWidth("NO MODE SELECTED")) / 2, 30, "NO MODE SELECTED");
       Serial.println("NO MODE SELECTED!");
+      digitalWrite(LvibPin, LOW);
+      digitalWrite(MvibPin, LOW);
+      digitalWrite(RvibPin, LOW);
     }
   } while (u8g.nextPage());
 }
@@ -239,42 +252,67 @@ void daymode() {
   MainUltraSonic();
   LEDHazzardfunctionOFF();
   ldrnight();
+
+  // if (!checkOnce) {
+  //   checkOnce = LDRfunction();
+  // }
   
 }
 void nightmode() {
 Serial.println("Nightmode Selected!");
 MainUltraSonic();
-LEDHazzardfunctionOFF();
-ldrday();
+  LEDHazzardfunctionOFF();
+  ldrday();
   
-//   while (smsCount < 10) { // loop until 3 SMS messages have been sent
-//     sms("09951594526", "ALERT: Night Mode was triggered! Location: vip.sinotrack.com"); //pa change nalang number
-//     delay(1000); // wait for 1 second between SMS messages
-//     smsCount++; // increment counter variable
-//   }
+  // while (smsCount < 10) { // loop until 3 SMS messages have been sent
+  //   if (gsmCheck()) {
+  //   sendSMS("+639473117641", "Hello from GSM SIM800L!");
+  //   delay(5000);
+  // } else {
+  //   Serial.println("GSM module is not responding");
+  //   delay(1000);
+  // }
+  //   smsCount++; // increment counter variable
+  // }
 }
 void rainmode() {
 Serial.println("Rainmode Selected!");
 LEDHazzardfunctionON();
   
-//   while (smsCount < 3) { // loop until 3 SMS messages have been sent
-//     sms("09951594526", "ALERT: Rain Mode was triggered! Location: vip.sinotrack.com"); //pa change nalang number
-//     delay(1000); // wait for 1 second between SMS messages
-//     smsCount++; // increment counter variable
-//   }
+  // while (smsCount < 3) { // loop until 3 SMS messages have been sent
+  //   if (gsmCheck()) {
+  //   sendSMS("+639473117641", "Hello from GSM SIM800L!");
+  //   delay(5000);
+  // } else {
+  //   Serial.println("GSM module is not responding");
+  //   delay(1000);
+  // }
+  //   smsCount++; // increment counter variable
+  // }
+  digitalWrite(LvibPin, LOW);
+  digitalWrite(MvibPin, LOW);
+  digitalWrite(RvibPin, LOW);
 }
 void SOSmode() {
 Serial.println("SOSmode Selected!");
 LEDHazzardfunctionON();
-//   sms("09951594526", "ALERT: SOS Mode was triggered! Location: vip.sinotrack.com"); //pa change nalang number
-
+  // if (gsmCheck()) {
+  //   sendSMS("+639473117641", "Hello from GSM SIM800L!");
+  //   delay(5000);
+  // } else {
+  //   Serial.println("GSM module is not responding");
+  //   delay(1000);
+  // }
   myDFPlayer.play(10);  //No mode is seleted
   delay(3000);  
+  digitalWrite(LvibPin, LOW);
+  digitalWrite(MvibPin, LOW);
+  digitalWrite(RvibPin, LOW);
   
 }
 void timecheckmode() {
   Serial.println("TimeCheckmode Selected!");
-  rtc.adjust(DateTime(2023, 4, 19, 16, 30, 0));
+  rtc.adjust(DateTime(2023, 4, 19, 18, 30, 0));
   DateTime now = rtc.now();
   Serial.println("You Selected Time Check!");
   
@@ -440,20 +478,18 @@ void MainUltraSonic(){
   MidUltrasonic();
   LeftUltrasonic();
 
- if(distanceR <= 60 || distanceL <= 60){
+ if(distanceR <= 50 || distanceM <= 50 || distanceL <= 50){
 
 
     digitalWrite(LvibPin, HIGH);
     digitalWrite(MvibPin, HIGH);
     digitalWrite(RvibPin, HIGH);    
 
-   if (distanceM <= 30){
-    myDFPlayer.play(5);  //Obstacle is detected
-    delay(6000);
-   }
-    
-
-  }
+    if (distanceM <= 70){
+      myDFPlayer.play(5);  //Obstacle is detected
+      delay(6000); 
+    }
+    }
   else{
     digitalWrite(LvibPin, LOW);
     digitalWrite(MvibPin, LOW);
@@ -463,13 +499,13 @@ void MainUltraSonic(){
 }
 
 bool LDRfunction(){
-   if( digitalRead( ldr_pin ) == 1){
-      Serial.println("Dark Place"); // Voice wull notif that it is on the dark area
-      myDFPlayer.play(8);  //Darkplace place
+   if( digitalRead( ldr_pin ) == HIGH){
+      Serial.println("Light Place"); // Voice wull notif that it is on the dark area
+      myDFPlayer.play(8);  //Light place
       delay(6000); 
    }
    else{
-       Serial.println("Light Place"); // Voice wull notif that it is on the ligher area
+       Serial.println("Dark Place"); // Voice wull notif that it is on the ligher area
        myDFPlayer.play(7);  //Light place
       delay(6000);
       
@@ -479,17 +515,17 @@ bool LDRfunction(){
 }
 
 void ldrnight(){
-  if( digitalRead( ldr_pin ) == HIGH){
+    if( digitalRead( ldr_pin ) == HIGH){
       Serial.println("Dark Place"); // Voice wull notif that it is on the dark area
-      myDFPlayer.play(8);  //Darkplace place
+      myDFPlayer.play(8);  //Dark Place
       delay(6000); 
    }
 }
 
 void ldrday(){
-  if( digitalRead( ldr_pin ) == LOW){
-      Serial.println("LIGHT Place"); // Voice wull notif that it is on the dark area
-      myDFPlayer.play(7);  //LIGHT place
+    if( digitalRead( ldr_pin ) == LOW){
+      Serial.println("Light Place"); // Voice wull notif that it is on the dark area
+      myDFPlayer.play(7);  //Dark Place
       delay(6000); 
    }
 }
@@ -527,41 +563,29 @@ for(int i=30; i>21; i--){
   digitalWrite(i-1, LOW);
 }
 }
-// // Function to send an SMS message
-// void sms(String phone_number, String message) {
-//   // Send AT command to set the SMS mode to text
-//   sim800l.println("AT+CMGF=1");
+// Function to send an SMS message
+void sendSMS(String phone_number, String message) {
+  gsmSerial.println("AT+CMGF=1"); // set message format to text mode
+  delay(1000);
+  gsmSerial.print("AT+CMGS=\""); // start message sending
+  gsmSerial.print(phone_number);
+  gsmSerial.println("\"");
+  delay(1000);
+  gsmSerial.print(message);
+  delay(1000);
+  gsmSerial.write(26); // end message sending by sending Ctrl+Z
+  delay(1000);
+}
 
-//   delay(1000); // Wait for SIM800L module to respond
-
-//   // Send AT command to set the phone number to send the message to
-//   sim800l.print("AT+CMGS=\"");
-//   sim800l.print(phone_number);
-//   sim800l.println("\"");
-
-//   delay(150); // Wait for SIM800L module to respond
-
-//   // Send the message
-//   sim800l.print(message);
-
-//   delay(200); // Wait for SIM800L module to respond
-
-//   // Send Ctrl+Z to end the message
-//   sim800l.write(26);
-
-//   delay(500); // Wait for SIM800L module to respond
-//   Serial.println("SMS SENT!");
-// }
-
-// // Function to check if SIM800L module is responding
-// bool checkSIM800L() {
-//   sim800l.println("AT");
-//   delay(1000);
-//   if (sim800l.available()) {
-//     String response = sim800l.readString();
-//     if (response.indexOf("OK") != -1) {
-//       return true;
-//     }
-//   }
-//   return false;
-// }
+// Function to check if SIM800L module is responding
+bool gsmCheck() {
+  gsmSerial.println("AT");
+  delay(1000);
+  if (gsmSerial.available()) {
+    String response = gsmSerial.readString();
+    if (response.indexOf("OK") != -1) {
+      return true;
+    }
+  }
+  return false;
+}
