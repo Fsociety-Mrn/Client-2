@@ -19,10 +19,10 @@ int buttonPressed = 0; // variable to store which button is pressed
 #define LvibPin 12
 const int trigPinR = 34;
 const int echoPinR = 35;
-const int trigPinM = 36; //CHANGE PIN PARA SA SD CARD TO
-const int echoPinM = 37; //CHANGE PIN PARA SA SD CARD TO
-const int trigPinL = 38; //CHANGE PIN PARA SA SD CARD TO
-const int echoPinL = 39;
+const int trigPinM = 38; //CHANGE PIN PARA SA SD CARD TO
+const int echoPinM = 39; //CHANGE PIN PARA SA SD CARD TO
+const int trigPinL = 36; //CHANGE PIN PARA SA SD CARD TO
+const int echoPinL = 37;
 int durationL;
 long distanceL;
 int durationM;
@@ -39,7 +39,8 @@ int l = 0;
 int r = 0;
 
 //SIM SETUP
-SoftwareSerial gsmSerial(18, 19); // RX, TX pins
+// Configure the SIM900A software serial port
+SoftwareSerial sim900a(18, 19);  // RX, TX
 
 RTC_DS3231 rtc;   
 
@@ -67,8 +68,7 @@ void setup() {
   // RTC
   Wire.begin();          // initialize I2C communication
   rtc.begin();  
-  // Wait for SIM800L module to respond
-  gsmSerial.begin(115200);
+  sim900a.begin(9600);        // Start the software serial port for SIM900A
   delay(1000);
   // while (!gsmCheck()) {
   //   Serial.println("GSM module is not responding. Retrying...");
@@ -112,7 +112,7 @@ mySoftwareSerial.begin(9600);
 
   
 }
-
+ bool checkBright = false;
 void loop() {
   s:
   buttonPressed=0;
@@ -134,6 +134,8 @@ if (digitalRead(button1) == LOW) {
   checkOnce = false;
   
   while(buttonPressed == 1){
+
+    checkBright = false;
     Serial.println("Daymode Selected!");
     daymode();
     
@@ -243,6 +245,10 @@ myDFPlayer.play(4);  //SOS is selected
       digitalWrite(LvibPin, LOW);
       digitalWrite(MvibPin, LOW);
       digitalWrite(RvibPin, LOW);
+      if (sim900a.available()) {
+     String message = sim900a.readString();  // Read the incoming message
+     Serial.println("Received message: " + message);
+  }
     }
   } while (u8g.nextPage());
 }
@@ -252,7 +258,7 @@ void daymode() {
   MainUltraSonic();
   LEDHazzardfunctionOFF();
   ldrnight();
-
+  // ldrday();
   // if (!checkOnce) {
   //   checkOnce = LDRfunction();
   // }
@@ -263,46 +269,27 @@ Serial.println("Nightmode Selected!");
 MainUltraSonic();
   LEDHazzardfunctionOFF();
   ldrday();
-  
-  // while (smsCount < 10) { // loop until 3 SMS messages have been sent
-  //   if (gsmCheck()) {
-  //   sendSMS("+639473117641", "Hello from GSM SIM800L!");
-  //   delay(5000);
-  // } else {
-  //   Serial.println("GSM module is not responding");
-  //   delay(1000);
-  // }
-  //   smsCount++; // increment counter variable
-  // }
+
+  sendsmsnight();
 }
 void rainmode() {
 Serial.println("Rainmode Selected!");
 LEDHazzardfunctionON();
   
-  // while (smsCount < 3) { // loop until 3 SMS messages have been sent
-  //   if (gsmCheck()) {
-  //   sendSMS("+639473117641", "Hello from GSM SIM800L!");
-  //   delay(5000);
-  // } else {
-  //   Serial.println("GSM module is not responding");
-  //   delay(1000);
-  // }
-  //   smsCount++; // increment counter variable
-  // }
+  sendsmsrain();
   digitalWrite(LvibPin, LOW);
   digitalWrite(MvibPin, LOW);
   digitalWrite(RvibPin, LOW);
+
+  myDFPlayer.play(11);  //No mode is seleted
+  delay(3000);
+
+  
 }
 void SOSmode() {
 Serial.println("SOSmode Selected!");
 LEDHazzardfunctionON();
-  // if (gsmCheck()) {
-  //   sendSMS("+639473117641", "Hello from GSM SIM800L!");
-  //   delay(5000);
-  // } else {
-  //   Serial.println("GSM module is not responding");
-  //   delay(1000);
-  // }
+  sendsmssos();
   myDFPlayer.play(10);  //No mode is seleted
   delay(3000);  
   digitalWrite(LvibPin, LOW);
@@ -423,7 +410,7 @@ void timecheckmode() {
 
 
 // FUNCTIONS OF DAYMODE
-void RightUltrasonic(){
+long RightUltrasonic(){
 // Clears the trigPin
   digitalWrite(trigPinR, LOW);
   delayMicroseconds(2);
@@ -435,11 +422,16 @@ void RightUltrasonic(){
    durationR = pulseIn(echoPinR, HIGH);
   // Calculating the distance
    distanceR = durationR * 0.034 / 2;
+
+   long distancesR = durationM * 0.034 / 2;
   // Prints the distance on the Serial Monitor
   Serial.print("R-Distance: ");
-  Serial.println(distanceR);  
+  Serial.println(distancesR);  
+
+  return distancesR;
 }
-void MidUltrasonic(){
+
+long MidUltrasonic(){
   // Clears the trigPin
   digitalWrite(trigPinM, LOW);
   delayMicroseconds(2);
@@ -450,13 +442,19 @@ void MidUltrasonic(){
   // Reads the echoPin, returns the sound wave travel time in microseconds
   durationM = pulseIn(echoPinM, HIGH);
   // Calculating the distance
+
+  
   distanceM = durationM * 0.034 / 2;
+
+  long distancesM = durationM * 0.034 / 2;
   // Prints the distance on the Serial Monitor
   Serial.print("M-Distance: ");
-  Serial.println(distanceM);     
+  Serial.println(distancesM);   
+
+  return distancesM;
 }
 
-void LeftUltrasonic(){
+long LeftUltrasonic(){
   // Clears the trigPin
   digitalWrite(trigPinL, LOW);
   delayMicroseconds(2);
@@ -469,23 +467,30 @@ void LeftUltrasonic(){
   // Calculating the distance
   distanceL = durationL * 0.034 / 2;
   // Prints the distance on the Serial Monitor
+
+  long distancesL = durationL * 0.034 / 2;
   Serial.print("L-Distance: ");
-  Serial.println(distanceL);  
+  Serial.println(distancesL); 
+
+  return distancesL;
 }
 
 void MainUltraSonic(){
-  RightUltrasonic();
-  MidUltrasonic();
-  LeftUltrasonic();
+  // RightUltrasonic();
+  // MidUltrasonic();
+  // LeftUltrasonic();
 
- if(distanceR <= 50 || distanceL <= 50){
+// DITO NTYO ADJUST YUNG DISTANCE SHIT
+ if(RightUltrasonic() <= 60 || MidUltrasonic() <= 60 || LeftUltrasonic() <= 60){
 
 
     digitalWrite(LvibPin, HIGH);
     digitalWrite(MvibPin, HIGH);
     digitalWrite(RvibPin, HIGH);    
 
-    if (distanceM <= 30){
+// DITO NTYO ADJUST YUNG DISTANCE SHIT PARA MAG OBSTACLE SHIT DETECTED SHIT
+    if (MidUltrasonic() <= 40){
+      Serial.println("MAY OBSTACLES");
       myDFPlayer.play(5);  //Obstacle is detected
       delay(6000); 
     }
@@ -496,6 +501,7 @@ void MainUltraSonic(){
     digitalWrite(RvibPin, LOW);
 
   }
+
 }
 
 bool LDRfunction(){
@@ -515,18 +521,30 @@ bool LDRfunction(){
 }
 
 void ldrday(){
-    if( digitalRead( ldr_pin ) == HIGH){
+    if( digitalRead( ldr_pin ) == LOW){
       Serial.println("LIGHT PLACE"); // Voice wull notif that it is on the dark area
-      myDFPlayer.play(7);  //Dark Place
-      delay(6000); 
+      if (!checkBright)      
+        {
+          myDFPlayer.play(7);  //Dark Place
+          delay(6000); 
+
+          checkBright = true;
+        }      
    }
 }
 
 void ldrnight(){
-    if( digitalRead( ldr_pin ) == LOW){
+    if( digitalRead( ldr_pin ) == HIGH){
       Serial.println("DARK Place"); // Voice wull notif that it is on the dark area
-      myDFPlayer.play(8);  //Dark Place
+
+            if (!checkBright)      
+        {
+            myDFPlayer.play(8);  //Dark Place
       delay(6000); 
+
+          checkBright = true;
+        }    
+
    }
 }
 
@@ -589,3 +607,45 @@ for(int i=30; i>21; i--){
 //   }
 //   return false;
 // }
+void sendsmsnight(){
+// Send a test message to a phone number
+  sim900a.println("AT+CMGF=1");  // Set the SMS mode to text mode
+  delay(1000);
+  sim900a.println("AT+CMGS=\"+639951594526\"");  // Replace with your own phone number
+  delay(1000);
+  sim900a.println("Alert: Nightmode Activated");  // Replace with your own message
+  delay(1000);
+  sim900a.write(26);  // Send the Ctrl+Z character to indicate the end of the message
+  delay(1000);
+
+  Serial.println("Test message sent.");
+  delay(5000);  
+}
+void sendsmsrain(){
+// Send a test message to a phone number
+  sim900a.println("AT+CMGF=1");  // Set the SMS mode to text mode
+  delay(1000);
+  sim900a.println("AT+CMGS=\"+639951594526\"");  // Replace with your own phone number
+  delay(1000);
+  sim900a.println("Alert: Rain Mode Activated.");  // Replace with your own message
+  delay(1000);
+  sim900a.write(26);  // Send the Ctrl+Z character to indicate the end of the message
+  delay(1000);
+
+  Serial.println("Test message sent.");
+  delay(5000);  
+}
+void sendsmssos(){
+// Send a test message to a phone number
+  sim900a.println("AT+CMGF=1");  // Set the SMS mode to text mode
+  delay(1000);
+  sim900a.println("AT+CMGS=\"+639951594526\"");  // Replace with your own phone number
+  delay(1000);
+  sim900a.println("SOS Activated check location.");  // Replace with your own message
+  delay(1000);
+  sim900a.write(26);  // Send the Ctrl+Z character to indicate the end of the message
+  delay(1000);
+
+  Serial.println("Test message sent.");
+  delay(5000);    
+}
