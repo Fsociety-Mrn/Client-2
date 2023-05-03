@@ -514,7 +514,7 @@ bool LDRfunction(){
    return true;
 }
 
-void ldrnight(){
+void ldrday(){
     if( digitalRead( ldr_pin ) == HIGH){
       Serial.println("LIGHT PLACE"); // Voice wull notif that it is on the dark area
       myDFPlayer.play(7);  //Dark Place
@@ -522,7 +522,7 @@ void ldrnight(){
    }
 }
 
-void ldrday(){
+void ldrnight(){
     if( digitalRead( ldr_pin ) == LOW){
       Serial.println("DARK Place"); // Voice wull notif that it is on the dark area
       myDFPlayer.play(8);  //Dark Place
